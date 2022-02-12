@@ -1,20 +1,38 @@
-from ast import arg
 from pytube import YouTube
 import os
 import datetime
 import requests
-import time
 import json
 from threading import Thread
-import concurrent.futures
 
 def start():
 
     global yt
 
-    YT_LINK = input('Link to video: ')
+    F_FILE = input('Download from file or single video? \n1. Download from file\n2. Single video')
+    if F_FILE == '1':
+        multiple_video()
+    elif F_FILE == '2':
+        single_video()
+
+    else:
+        print('Invalid input! Try again!')
+
+
+def single_video():
+    URL = input('Link to video: ')
     P_DIR = input('Full path to directory to save to: ')
-    yt = YouTube(YT_LINK)
+
+    t5 = Thread(target=start_download, args=(URL, P_DIR,))
+    t5.join()
+
+    N_VIDEO = input('New video? y/n')
+    while N_VIDEO != 'n':
+        start()
+
+def start_download(URL, P_DIR):
+    global yt
+    yt = YouTube(URL)
 
     YT_TITLE = yt.title
     # Going to make a solution for 'illegal' characters here
@@ -22,17 +40,17 @@ def start():
     for x in ILLEGAL_CHAR:
         if x in YT_TITLE:
             YT_TITLE = YT_TITLE.replace(x, '')
-            
+
     # Get the YouTube Thumbnail URL
     YT_TH_URL = yt.thumbnail_url
     PATH = os.path.join(P_DIR, YT_TITLE)
 
 
     pairs = [
-        (create_folder, (YT_TITLE, PATH,)),
+        (create_folder, (PATH,)),
         (create_text, (YT_TITLE, PATH,)),
         (download_thumb, (YT_TH_URL, YT_TITLE, PATH,)),
-        (download_video, (YT_LINK, PATH, YT_TITLE,))
+        (download_video, (URL, PATH, YT_TITLE,))
     ]
 
     threads = [Thread(target=func, args=args) for func, args in pairs]
@@ -41,16 +59,27 @@ def start():
         t.start()
 
     for t in threads:
-        t.join()
+        t.join()   
 
-    N_VIDEO = input('New video? y/n')
-    while N_VIDEO != 'n':
+ 
+def multiple_video():
+    V_FILE = input('Full path to file containing URLS:')
+    PATH = input('Enter directory to download to: ')
+
+    if os.path.isfile(V_FILE):
+        with open(V_FILE, 'r') as f:
+            LINES = f.readlines()
+            for x in LINES:
+                start_download(x, PATH)
+                print(x.strip())
+
+    else:
+        print('Invalid file! Try again.')
         start()
 
-def create_folder(YT_TITLE, PATH):
-    # Needs to include full path to directory for now
 
-    #P_DIR = '/Users/johannesfalnes/PycharmProjects/YT-Archiver/Downloads'
+def create_folder(PATH):
+    # Needs to include full path to directory for now
 
     if os.path.isdir(PATH):
         print(f'Folder already exists in path {PATH}. Bypassing.')
@@ -115,6 +144,8 @@ def download_video(YT_LINK, PATH, YT_TITLE):
             yt = YouTube(YT_LINK)
             video = yt.streams.get_highest_resolution()
             video.download(PATH)
+            
+            print(f'Video successfully downloaded to {PATH}')
     except:
         print(f'Something went wrong while downloading')
 
