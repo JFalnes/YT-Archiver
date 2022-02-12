@@ -17,16 +17,16 @@ def start():
     yt = YouTube(YT_LINK)
 
     YT_TITLE = yt.title
-
-    # Get the YouTube Thumbnail URL
-    YT_TH_URL = yt.thumbnail_url
-    PATH = os.path.join(P_DIR, YT_TITLE)
-
     # Going to make a solution for 'illegal' characters here
     ILLEGAL_CHAR = ['<', '>', ':', '"', '/', '\\', '|', '?', '*']
     for x in ILLEGAL_CHAR:
         if x in YT_TITLE:
             YT_TITLE = YT_TITLE.replace(x, '')
+            
+    # Get the YouTube Thumbnail URL
+    YT_TH_URL = yt.thumbnail_url
+    PATH = os.path.join(P_DIR, YT_TITLE)
+
 
     pairs = [
         (create_folder, (YT_TITLE, PATH,)),
