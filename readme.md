@@ -12,6 +12,7 @@ A small CLI-based program for downloading and archiving YouTube videos.
 ### Single Video Download
 **Single video downloads** only need a single URL, and a PATH to download the video to. The program will then create a folder named after the video title in the supplied path.
 
+### Bulk Video Download
 **Bulk video downloads** needs the path to a '.txt' file containing 1 or more YouTube video URLs. These URLs need to be on separate lines such as this:
 
 > youtube.com/URLForVideo1
