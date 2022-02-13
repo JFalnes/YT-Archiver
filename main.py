@@ -9,7 +9,7 @@ def start():
 
     global yt
 
-    F_FILE = input('Download from file or single video? \n1. Download from file\n2. Single video')
+    F_FILE = input('Download from file or single video? \n1. Download from file \n2. Single video \n')
     if F_FILE == '1':
         multiple_video()
     elif F_FILE == '2':
@@ -23,9 +23,7 @@ def single_video():
     URL = input('Link to video: ')
     P_DIR = input('Full path to directory to save to: ')
 
-    t5 = Thread(target=start_download, args=(URL, P_DIR,))
-    t5.join()
-
+    start_download(URL, P_DIR)
     N_VIDEO = input('New video? y/n')
     while N_VIDEO != 'n':
         start()
@@ -108,7 +106,7 @@ def create_text(YT_TITLE, PATH):
         print(f'Creating stats file in {FILE_PATH}')
 
         TIME_DOWNLOADED = datetime.datetime.now()
-        
+
         WRITE_TO_FILE = {
                         'Title': yt.title,
                         'Channel URL': yt.channel_url,
