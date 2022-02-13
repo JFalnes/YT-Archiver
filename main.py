@@ -30,8 +30,10 @@ def single_video():
     while N_VIDEO != 'n':
         start()
 
+
 def start_download(URL, P_DIR):
     global yt
+
     yt = YouTube(URL)
 
     YT_TITLE = yt.title
@@ -46,32 +48,34 @@ def start_download(URL, P_DIR):
     PATH = os.path.join(P_DIR, YT_TITLE)
 
 
-    pairs = [
+    PAIRS = [
         (create_folder, (PATH,)),
         (create_text, (YT_TITLE, PATH,)),
         (download_thumb, (YT_TH_URL, YT_TITLE, PATH,)),
         (download_video, (URL, PATH, YT_TITLE,))
     ]
 
-    threads = [Thread(target=func, args=args) for func, args in pairs]
+    THREADS = [Thread(target=func, args=args) for func, args in PAIRS]
 
-    for t in threads:
-        t.start()
+    for T in THREADS:
+        T.start()
 
-    for t in threads:
-        t.join()   
+    for T in THREADS:
+        T.join()   
 
  
 def multiple_video():
+    """Function for downloading multiple files
+    Scans the supplied file for YT URLs."""
     V_FILE = input('Full path to file containing URLS:')
     PATH = input('Enter directory to download to: ')
 
     if os.path.isfile(V_FILE):
         with open(V_FILE, 'r') as f:
             LINES = f.readlines()
-            for x in LINES:
-                start_download(x, PATH)
-                print(x.strip())
+            for URL in LINES:
+                start_download(URL, PATH)
+                print(URL.strip())
 
     else:
         print('Invalid file! Try again.')
@@ -79,8 +83,8 @@ def multiple_video():
 
 
 def create_folder(PATH):
-    # Needs to include full path to directory for now
-
+    """Creates a folder using the PATH variable.
+    If folder exists it will skip creation, and tell user that PATH already exists."""
     if os.path.isdir(PATH):
         print(f'Folder already exists in path {PATH}. Bypassing.')
     else:
@@ -90,17 +94,23 @@ def create_folder(PATH):
 
 
 def create_text(YT_TITLE, PATH):
+    """Creates the statistics text. 
+    Uses the yt object, YT_TITLE and PATH variables to create the file."""
+    
     N_TITLE = YT_TITLE + '.txt'
 
-    my_file = (PATH + '/' + N_TITLE)
-    FILE_PATH = os.path.join(PATH, my_file)
+    STAT_FILE = (PATH + '/' + N_TITLE)
+    FILE_PATH = os.path.join(PATH, STAT_FILE)
 
     if os.path.isfile(FILE_PATH):
         print(f'File already exists in path {FILE_PATH}, bypassing...')
     else:
         print(f'Creating stats file in {FILE_PATH}')
-        time_downloaded = datetime.datetime.now()
-        write_to_file = {'Title': YT_TITLE,
+
+        TIME_DOWNLOADED = datetime.datetime.now()
+        
+        WRITE_TO_FILE = {
+                        'Title': yt.title,
                         'Channel URL': yt.channel_url,
                         'Video Views': yt.views,
                         'Video Desc': yt.description,
@@ -108,17 +118,22 @@ def create_text(YT_TITLE, PATH):
                         'Length': yt.length,
                         'Publication Date': yt.publish_date,
                         'Rating': yt.rating,
-                        'Time Downloaded': time_downloaded,
-                        'Age restricted': yt.age_restricted
+                        'Time Downloaded': TIME_DOWNLOADED,
+                        'Age restricted': yt.age_restricted,
+                        'Author': yt.author
                         }
 
         with open(FILE_PATH, 'w') as f:
-            f.write(json.dumps(write_to_file, indent=4, sort_keys=False, default=str))
+            f.write(json.dumps(WRITE_TO_FILE, indent=4, sort_keys=False, default=str))
+            f.close()
 
 
 
 def download_thumb(YT_TH_URL, YT_TITLE, PATH):
-    response = requests.get(YT_TH_URL)
+    """Download the Thumbnail for the selected video, 
+    and saves it to PATH using the YT_TITLE var as name"""
+
+    R_THUMB = requests.get(YT_TH_URL)
 
     THUMB_PATH = os.path.join(PATH, (YT_TITLE + '.jpg'))
     if os.path.isfile(THUMB_PATH):
@@ -126,7 +141,7 @@ def download_thumb(YT_TH_URL, YT_TITLE, PATH):
     else:
         print(f'Downloading thumbnail to {THUMB_PATH}')
         with open(THUMB_PATH, 'wb') as f:
-            f.write(response.content)
+            f.write(R_THUMB.content)
             f.close()
 
 
@@ -142,9 +157,9 @@ def download_video(YT_LINK, PATH, YT_TITLE):
             print('Downloading video ', YT_LINK)
 
             yt = YouTube(YT_LINK)
-            video = yt.streams.get_highest_resolution()
-            video.download(PATH)
-            
+            VIDEO = yt.streams.get_highest_resolution()
+            VIDEO.download(PATH)
+
             print(f'Video successfully downloaded to {PATH}')
     except:
         print(f'Something went wrong while downloading')
